@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# fail fast
+set -e 
+
+function echo_title() {
+  echo $'\e[1G----->' $*
+}
+
+function echo_normal() {
+  echo $'\e[1G      ' $*
+}
+function process() {
+  while read line; do
+    if [[ "$line" == --* ]]; then
+      echo $'\e[1G'$line
+    else
+      echo $'\e[1G      ' "$line"
+    fi
+
+  done 
+}
+
+while read OLDREV NEWREV REF; do
+
+  if [ "$REF" != "refs/heads/master" ]; then
+    continue
+  fi
+
+  echo_normal $'\n'
+  echo_title "Openruko receiving git push"
+  build_root=/tmp/checkout
+  mkdir -p $build_root
+  GIT_WORK_TREE=$build_root git checkout -f $NEWREV >/dev/null 2>&1
+
+  buildpack_root=/tmp/buildpacks/buildpacks
+  buildpacks=($buildpack_root/*)
+
+  selected_buildpack=
+
+  for buildpack in "${buildpacks[@]}"; do
+    ($buildpack/bin/detect "$build_root") > /dev/null 2>&1 && selected_buildpack=$buildpack 
+  done
+
+  buildpack_name=
+  if [ -n "$selected_buildpack" ]; then
+    buildpack_name=${selected_buildpack##*/} 
+    echo_title "$buildpack_name app detected"
+  else
+    echo_title "Unable to select a buildpack"
+    exit 1
+  fi
+
+  cache_root=/tmp/cache
+  mkdir -p $cache_root
+
+  ($selected_buildpack/bin/compile "$build_root" "$cache_root") | process
+
+
+  echo_title "Discovering process types"
+  release_output=$($selected_buildpack/bin/release "$build_root" "$cache_root") 
+
+
+  default_types=$(echo "$release_output" | sed -ne '/^default/,/(\z|^[a-z])/  {
+      /^[a-z]/n
+      s/  //p
+  }')
+
+  procfile=
+  if [ -f "$build_root/Procfile" ]; then
+    procfile=$(cat "$build_root/Procfile" | sed 's/^/  /')
+    echo_normal "Procfile declares types -> " $(cat "$build_root/Procfile" | cut -d: -f1 | tr $'\n' ',' | sed -e 's/,$//')
+  else
+    procfile=$(echo "$default_types" | sed -e 's/^/  /')
+  fi
+  
+  echo_normal "Default process types for $buildpack_name -> " $(echo "$default_types" | cut -d: -f1 | tr $'\n' ',' | sed -e 's/,$//')
+
+  if [ -f "$build_root/.slugignore" ]; then
+    tar --exclude='.git' -X "$build_root/.slugignore" -C $build_root -czf /tmp/slug.tgz .
+  else
+    tar --exclude='.git' -C $build_root -czf /tmp/slug.tgz .
+  fi
+
+  slug_size=$(du -Sh /tmp/slug.tgz | cut -d' ' -f1)
+  echo_title "Compiled slug size is $slug_size"
+
+  echo_normal "Using slug_id: ${slug_id}"
+  release_payload=$(echo -e "${release_output}\npstable:\n${procfile}\ncommit: $NEWREV\nslug_id: ${slug_id}")
+  curl -s -o /dev/null -X PUT -T /tmp/slug.tgz "$slug_put_url" 
+  release_number=$(curl -s -X POST -H 'Content-Type: text/plain' --data-binary "$release_payload" "$push_code_url")
+
+  echo_title "Launching... done v" $release_number
+  echo_normal "$dyno_web_url deployed to Openruko"
+  echo_normal $'\n'
+  
+done;
