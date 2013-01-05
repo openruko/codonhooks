@@ -1,0 +1,3 @@
+**/node_module
+**/bin
+test/fixture/node-example
