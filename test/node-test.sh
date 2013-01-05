@@ -5,7 +5,7 @@ set -e
 node_example="fixture/node-example"
 
 rm -fr $node_example
-mkdir $node_example
+mkdir -p $node_example
 
 cat >> "$node_example/server.js" <<EOF
   var express = require('express');
@@ -55,7 +55,7 @@ expect << EOF
   expect "Discovering process types"
   expect "Procfile declares types -> web"
   expect "Default process types for nodejs"
-  expect "Compiled slug size is 2,9M /tmp/slug.tgz"
+  expect "Compiled slug size is "
   expect "Using slug_id: 1234"
   expect eof
 EOF
@@ -63,11 +63,12 @@ EOF
 cd /tmp/checkout
 cat >> .env << EOF
 PATH=bin:$PATH
+PORT=9999
 EOF
 
 expect << EOF
   spawn foreman start
-  expect "Listening on port 5000"
+  expect "Listening on port"
   expect eof
 EOF
 
