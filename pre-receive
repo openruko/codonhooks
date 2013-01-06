@@ -38,13 +38,22 @@ while read OLDREV NEWREV REF; do
 
   selected_buildpack=
 
-  for buildpack in "${buildpacks[@]}"; do
-    ($buildpack/bin/detect "$build_root") > /dev/null 2>&1 && selected_buildpack=$buildpack 
-  done
+  if [ -n "$BUILDPACK_URL" ]; then
+    echo_title "Fetching custom buildpack"
+    buildpack="$buildpack_root/custom"
+    rm -fr "$buildpack"
+    unset GIT_WORK_TREE
 
-  buildpack_name=
+    git clone --depth=1 "$BUILDPACK_URL" "$buildpack"
+    selected_buildpack="$buildpack"
+    buildpack_name=$($buildpack/bin/detect "$build_root") && selected_buildpack=$buildpack
+  else
+    for buildpack in "${buildpacks[@]}"; do
+      buildpack_name=$($buildpack/bin/detect "$build_root") && selected_buildpack=$buildpack && break
+    done
+  fi
+
   if [ -n "$selected_buildpack" ]; then
-    buildpack_name=${selected_buildpack##*/} 
     echo_title "$buildpack_name app detected"
   else
     echo_title "Unable to select a buildpack"
@@ -59,8 +68,6 @@ while read OLDREV NEWREV REF; do
 
   echo_title "Discovering process types"
   release_output=$($selected_buildpack/bin/release "$build_root" "$cache_root") 
-
-
   default_types=$(echo "$release_output" | sed -ne '/^default/,/(\z|^[a-z])/  {
       /^[a-z]/n
       s/  //p
@@ -73,7 +80,7 @@ while read OLDREV NEWREV REF; do
   else
     procfile=$(echo "$default_types" | sed -e 's/^/  /')
   fi
-  
+
   echo_normal "Default process types for $buildpack_name -> " $(echo "$default_types" | cut -d: -f1 | tr $'\n' ',' | sed -e 's/,$//')
 
   if [ -f "$build_root/.slugignore" ]; then

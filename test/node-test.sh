@@ -47,7 +47,7 @@ cd $dir
 
 expect << EOF
   spawn ./pre-receive-launcher.sh node-example
-  expect "nodejs app detected"
+  expect "Node.js app detected"
   expect "Fetching Node.js binaries"
   expect "Vendoring node into slug"
   expect "Installing dependencies with npm"
