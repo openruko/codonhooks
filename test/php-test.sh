@@ -43,10 +43,17 @@ PATH=bin:$PATH
 PORT=9999
 EOF
 
-foreman start
+expect << EOF
+  spawn foreman start
+  expect "Launching apache"
+  expect "Apache/"
+  expect eof
+EOF
 
 expect << EOF
   spawn curl localhost:9999
-  expect "I have 2 foo."
+  expect "I have 2 foo"
   expect eof
 EOF
+
+pkill httpd
