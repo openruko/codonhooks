@@ -2,7 +2,7 @@
 
 set -e
 
-custom_buildpack_example="fixture/custom-example"
+custom_buildpack_example="/tmp/checkout"
 
 rm -fr $custom_buildpack_example
 mkdir -p $custom_buildpack_example

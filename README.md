@@ -38,6 +38,7 @@ as /etc/alternatives is bind mounted into the lxc container.
 
 Step 1:
 ```
+sudo apt-get install libltdl7 # for php buildpack to work
 git clone https://github.com/openruko/codonhooks.git codonhooks  
 ```
 Step 2:
@@ -52,6 +53,15 @@ and finally to the hooks.
 ## Help and Todo 
 
 Make more resilent regarding error handling, log and report errors.
+
+## Tests
+
+To test codonhooks first create `/app` dir owned by your user. It is needed by php buildpack
+```
+sudo mkdir /app
+sudo chown $USER. /app
+./run-tests.sh
+```
 
 ## License
 
