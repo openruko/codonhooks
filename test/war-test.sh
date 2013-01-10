@@ -18,6 +18,8 @@ expect << EOF
   expect "Installing Maven"
   expect "Installing settings.xml"
   expect "mvn"
+  expect "Copying webapp-runner-7.0.22.jar to /tmp/checkout/target/dependency/webapp-runner.jar"
+  expect "BUILD SUCCESS"
   expect "Discovering process types"
   expect "Default process types for Java -> web"
   expect "Compiled slug size is "
@@ -27,14 +29,13 @@ EOF
 
 cd $war_example
 cat >> .env << EOF
-PATH=bin:$PATH
+PATH=bin:.jdk/bin:$PATH
 PORT=9999
 EOF
 
-foreman start
-
 expect << EOF
-  spawn curl localhost:9999
-  expect "Hello World!"
+  spawn foreman start
+  expect "deploying app from: /tmp/checkout/target/webappRunnerSample.war"
+  expect "Starting service Tomcat"
   expect eof
 EOF
