@@ -20,6 +20,18 @@ On a fresh Ubuntu 12.04 LTS instance:
 ```
 apt-get install git
 apt-get install curl
+apt-get install libssl0.9.8
+apt-get install libltdl7 # for php buildpack to work
+```
+
+On a CentOS 6.3 instance:
+```
+yum install git
+yum install curl
+yum install openssl098e
+ln -s /usr/lib64/libssl.so.0.9.8e /usr/lib64/libssl.so.0.9.8
+ln -s /usr/lib64/libcrypto.so.0.9.8e  /usr/lib64/libcrypto.so.0.9.8
+yum install libtool-ltdl
 ```
 
 Please share experiences with CentOS, Fedora, OS X, FreeBSD etc...   
@@ -38,7 +50,6 @@ as /etc/alternatives is bind mounted into the lxc container.
 
 Step 1:
 ```
-sudo apt-get install libltdl7 # for php buildpack to work
 git clone https://github.com/openruko/codonhooks.git codonhooks  
 ```
 Step 2:
