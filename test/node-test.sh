@@ -2,7 +2,7 @@
 
 set -e
 
-node_example="fixture/node-example"
+node_example="/tmp/checkout"
 
 rm -fr $node_example
 mkdir -p $node_example
