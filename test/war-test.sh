@@ -12,6 +12,7 @@ echo "java.runtime.version=1.7" > $war_example/system.properties
 export PATH=bin:$PATH
 
 expect << EOF
+  set timeout 30
   spawn ./pre-receive-launcher.sh
   expect "Java app detected"
   expect "Installing OpenJDK 1.7"
@@ -21,7 +22,6 @@ expect << EOF
   expect "Copying webapp-runner-7.0.22.jar to /tmp/checkout/target/dependency/webapp-runner.jar"
   expect "BUILD SUCCESS"
   expect "Discovering process types"
-  expect "Default process types for Java -> web"
   expect "Compiled slug size is "
   expect "Using slug_id: 1234"
   expect eof
