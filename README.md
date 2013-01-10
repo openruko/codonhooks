@@ -56,8 +56,10 @@ Make more resilent regarding error handling, log and report errors.
 
 ## Tests
 
-To test codonhooks run
+To test codonhooks first create `/app` dir owned by your user. It is needed by php buildpack
 ```
+sudo mkdir /app
+sudo chown $USER. /app
 ./run-tests.sh
 ```
 
