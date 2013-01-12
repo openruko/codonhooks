@@ -96,7 +96,7 @@ while read OLDREV NEWREV REF; do
   release_payload=$(echo -e "${release_output}\npstable:\n${procfile}\ncommit: $NEWREV\nslug_id: ${slug_id}")
   curl -0 -s -o /dev/null -X PUT -T /tmp/slug.tgz "$slug_put_url" 
 
-  release_number=$(curl -s -X POST -H 'Content-Type: text/plain' --data-binary "$release_payload" "$push_code_url")
+  release_number=$(curl --insecure -s -X POST -H 'Content-Type: text/plain' --data-binary "$release_payload" "$push_code_url")
 
   echo_title "Launching... done v" $release_number
   echo_normal "$dyno_web_url deployed to Openruko"
