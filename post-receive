@@ -3,10 +3,13 @@
 set -e 
 set -o pipefail 
 
-(
-cd /app 
-tar --exclude='hooks/*' -c . | gzip > /tmp/repo.tgz
-)
-curl -s -o /dev/null -T /tmp/repo.tgz "$repo_put_url"
+while read OLDREV NEWREV REF; do
 
+  (
+  cd /app 
+  tar --exclude='hooks/*' -c . | gzip > /tmp/repo.tgz
+  )
+  curl -s -o /dev/null -T /tmp/repo.tgz "$repo_put_url"
+
+done;
 
